@@ -38,19 +38,25 @@ class block_leaderboard_observer {
     public static function assignment_submitted_handler(\mod_assign\event\assessable_submitted $event) {
         global $DB, $USER;
         $functions = new block_leaderboard_functions;
+
         if (user_has_role_assignment($USER->id, 5)) {
             $eventdata = new \stdClass();
+
             // The id of the object the event is occuring on.
             $eventid = $event->objectid;
+
             // The data of the submission.
             $sql = "SELECT assign.*, assign_submission.userid
                 FROM {assign_submission} assign_submission
                 INNER JOIN {assign} assign ON assign.id = assign_submission.assignment
                 WHERE assign_submission.id = ?;";
+
             $assignmentdata = $DB->get_record_sql($sql, array($eventid));
+
             // 86400 seconds per day in unix time.
             // The function intdiv() is integer divinsion for PHP '/' is foating point division.
             $daysbeforesubmission = intdiv(($assignmentdata->duedate - $event->timecreated), 86400);
+
             // Set the point value.
             $points = $functions->get_early_submission_points($daysbeforesubmission, 'assignment');
             $eventdata->pointsearned = $points;
@@ -59,9 +65,11 @@ class block_leaderboard_observer {
             $eventdata->timefinished = $event->timecreated;
             $eventdata->modulename = $assignmentdata->name;
             $eventdata->daysearly = $daysbeforesubmission;
+
             $activity = $DB->get_record('block_leaderboard_assignment',
                             array('activityid' => $eventid, 'studentid' => $assignmentdata->userid),
                             $fields = '*', $strictness = IGNORE_MISSING);
+
             // Insert the new data into the databese if new, update if old.
             if ($activity) {
                 $eventdata->id = $activity->id;

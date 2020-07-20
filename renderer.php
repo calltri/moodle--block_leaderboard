@@ -29,7 +29,7 @@ class block_leaderboard_renderer extends plugin_renderer_base {
      * @return string The content to be displayed in the block.
      */
     public function leaderboard_block() {
-        global $DB, $OUTPUT, $COURSE, $USER;
+        global $DB, $OUTPUT, $COURSE;
 
         // Prepare the data for the table.
         $courseid  = $COURSE->id;
@@ -37,37 +37,18 @@ class block_leaderboard_renderer extends plugin_renderer_base {
         $daterange = $functions->get_date_range($courseid);
         $start = $daterange->start;
         $end = $daterange->end;
-                
+
         $url = new moodle_url('/blocks/leaderboard/index.php', array('id' => $courseid, 'start' => $start, 'end' => $end));
-        
-        //updates assignment table with commits from github
-        //$functions->test_add_to_globals('add');
-        //$functions->test_add_to_globals('delete');
-        $functions->update_assignment_submitted_github($start, $end, $courseid);
-        //$functions->test_create_assignment_record();
 
         // Get all groups from the current course.
         $groups = $DB->get_records('groups', array('courseid' => $courseid));
-        
-        //if user is a student and is not in a group, disable viewing the leaderboard for them
-        //FIXME this works if user is student anywhere
-        /*
-         * Possible solutions:
-         * moodle recommends basing off capacity instead of role
-         * put something in the context field of this function
-         */
-        if(user_has_role_assignment($USER->id, 5) && 
-                !($functions->is_user_in_a_group($groups, $USER->id))) {
-            return "";
-        }
-        
         // Only display content in the block if there are groups.
         if (count($groups) > 0) {
-            $maxgroupsize = $functions->get_max_group_size($groups);
+            $averagegroupsize = $functions->get_average_group_size($groups);
             // Get data for the groups.
             $groupdataarray = array();
             foreach ($groups as $group) {
-                $groupdataarray[] = $functions->get_group_data($group, $maxgroupsize, $start, $end);
+                $groupdataarray[] = $functions->get_group_data($group, $averagegroupsize, $start, $end);
             }
 
             // Sort groups by points.

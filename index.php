@@ -90,9 +90,6 @@ if (user_has_role_assignment($USER->id, 5)) {
     $isstudent = true;
 }
 
-//updates assignment table with commits from github
-$functions->update_assignment_submitted_github($start, $end, $cid);
-
 // CREATE LEADERBOARD TABLE.
 $groups = $DB->get_records('groups', array('courseid' => $cid));
 if (count($groups) > 0) { // There are groups to display.
@@ -102,13 +99,21 @@ if (count($groups) > 0) { // There are groups to display.
                     get_string('name', 'block_leaderboard'), get_string('points', 'block_leaderboard'));
     $table->attributes['class'] = 'generaltable leaderboardtable';
 
-    // Get the max group size.
-    $maxgroupsize = $functions->get_max_group_size($groups);
+    // Get average group size.
+    $numgroups = count($groups);
+    $numstudents = 0;
+    foreach ($groups as $group) {
+        // Get each member of the group.
+        $students = groups_get_members($group->id, $fields = 'u.*', $sort = 'lastname ASC');
+        $numstudents += count($students);
+    }
+    // Get the average group size.
+    $averagegroupsize = ceil($numstudents / $numgroups);
 
     // Get all group data.
     $groupdataarray = [];
     foreach ($groups as $group) {
-        $groupdataarray[] = $functions->get_group_data($group, $maxgroupsize, $start, $end);
+        $groupdataarray[] = $functions->get_group_data($group, $averagegroupsize, $start, $end);
     }
 
     // Sort the groups by points.
@@ -175,36 +180,15 @@ if (count($groups) > 0) { // There are groups to display.
                     if (empty($studentdata->history) != 1) {
                         // Add the students data to the table.
                         $infocount = 0;
-                        $maxforumresponsepoints = get_config('leaderboard', 'forumresponsemaxpoints');
-                        $maxforumpostpoints = get_config('leaderboard', 'forumpostmaxpoints');
-                        
                         foreach ($studentdata->history as $pointsmodule) {
                             // Add a row to the table with the name of the module and the number of points earned.
                             if (property_exists($pointsmodule, "isresponse")) { // Forum modules.
-                                //post
                                 if ($pointsmodule->isresponse == 0) {
-                                    //makes sure not more than the max amount of points is assigned
-                                    $pointsearned = round($pointsmodule->pointsearned);
-                                    $finalpoints = 0;
-                                    while(0 < $maxforumpostpoints && $pointsearned > 0) {
-                                        $maxforumpostpoints--;
-                                        $finalpoints++;
-                                        $pointsearned--;
-                                    }                                    
                                     $modulerow = new html_table_row(array("", "", "",
-                                                        "Forum Post", $finalpoints));
-                                //response
+                                                        "Forum Post", round($pointsmodule->pointsearned)));
                                 } else if ($pointsmodule->isresponse == 1) {
-                                    //makes sure not more than the max amount of points is assigned
-                                    $pointsearned = round($pointsmodule->pointsearned);
-                                    $finalpoints = 0;
-                                    while(0 < $maxforumresponsepoints && $pointsearned > 0) {
-                                        $maxforumresponsepoints--;
-                                        $finalpoints++;
-                                        $pointsearned--;
-                                    }             
                                     $modulerow = new html_table_row(array("", "", "",
-                                                        "Forum Response", $finalpoints));
+                                                        "Forum Response", round($pointsmodule->pointsearned)));
                                 }
                             } else { // Modules with their own names.
                                 if (property_exists($pointsmodule, "daysearly") && $pointsmodule->pointsearned > 0) {
@@ -231,9 +215,7 @@ if (count($groups) > 0) { // There are groups to display.
                                 if (property_exists($pointsmodule, "attempts")) {
                                     $earlypoints = $functions->get_early_submission_points($daysearly, 'quiz');
                                 } else {
-                                    if(property_exists($pointsmodule, "testspassed") && $pointsmodule->testspassed > 0) {
-                                        $earlypoints = $functions->get_early_submission_points($daysearly, 'assignment');
-                                    }
+                                    $earlypoints = $functions->get_early_submission_points($daysearly, 'assignment');
                                 }
                                 if ($earlypoints > 0) {
                                     $modulerow = new html_table_row(array("", "", "",
@@ -241,24 +223,9 @@ if (count($groups) > 0) { // There are groups to display.
                                                     $earlypoints));
                                     $modulerow->attributes['class'] = 'contentInfo';
                                     $modulerow->attributes['name'] = 'c'.$groupindex.'s'.$count.'i'.$infocount;
-                                    $table->data[] = $modulerow;                               
-                                }
-                            }
-                            
-                            //Include info on points from tests passed
-                            if(property_exists($pointsmodule, "testspassed") && property_exists($pointsmodule, "testpoints")) {
-                                $earlypoints = $pointsmodule->testpoints;
-
-                                if ($earlypoints > 0) {
-                                    $modulerow = new html_table_row(array("", "", "",
-                                                    "Number of tests passed ".$pointsmodule->testspassed,
-                                                    $earlypoints));
-                                    $modulerow->attributes['class'] = 'contentInfo';
-                                    $modulerow->attributes['name'] = 'c'.$groupindex.'s'.$count.'i'.$infocount;
                                     $table->data[] = $modulerow;
                                 }
                             }
-                            
                             // Include info about how many times a quiz was attempted.
                             if (property_exists($pointsmodule, "attempts")) {
                                 $attemptspoints = $functions->get_quiz_attempts_points($pointsmodule->attempts);
@@ -380,8 +347,4 @@ echo '<br/>';
 echo '<div class = "q">'.get_string('q7', 'block_leaderboard').'</div>';
 echo '<br/>';
 echo '<div class = "a">'.get_string('a7', 'block_leaderboard').'</div>';
-echo '<br/>';
-echo '<div class = "q">'.get_string('q8', 'block_leaderboard').'</div>';
-echo '<br/>';
-echo '<div class = "a">'.get_string('a8', 'block_leaderboard').'</div>';
 echo $OUTPUT->footer();

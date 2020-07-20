@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/leaderboard/db" VERSION="20200110" COMMENT="XMLDB file for Moodle blocks/leaderboard"
+<XMLDB PATH="blocks/leaderboard/db" VERSION="20181229" COMMENT="XMLDB file for Moodle blocks/leaderboard"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -13,8 +13,6 @@
         <FIELD NAME="timefinished" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time the assignment was most recently submitted."/>
         <FIELD NAME="modulename" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The title of the assignment."/>
         <FIELD NAME="daysearly" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The number of days early an assignment was turned in."/>
-        <FIELD NAME="testspassed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="testpoints" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -73,23 +71,6 @@
         <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The current timeupdated associated with the group."/>
         <FIELD NAME="currentstanding" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="1" SEQUENCE="false" COMMENT="The groups current standing in the leaderboard."/>
         <FIELD NAME="lastmove" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="1" SEQUENCE="false" COMMENT="The last move the group made '0' up '1' down '2' stay."/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-    </TABLE>
-    <TABLE NAME="block_leaderboard_travis_bui" COMMENT="Default comment for the table, please edit me">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="build_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="commit_timestamp" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="committer_email" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="github_assignment_acceptor" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="commit_message" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="pa" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="organization_name" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="total_tests" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="passed_tests" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
